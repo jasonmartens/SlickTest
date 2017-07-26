@@ -36,6 +36,10 @@ class DatastoreSpec extends FunSpec with Matchers {
       Await.ready(datastore.dbConfig.db.run(datastore.drivers += Driver("Michael Knight", "KITT")), 10 seconds)
       Await.ready(datastore.dbConfig.db.run(datastore.trips += Trip("Finale", "Michael Knight", "KITT")), 10 seconds)
 
+      val car = Await.result(datastore.dbConfig.db.run(datastore.trips.result), 10 seconds)
+      car.head shouldBe Car("KITT", "Pontiac", "Trans-Am")
+      val driver = Await.result(datastore.dbConfig.db.run(datastore.trips.result), 10 seconds)
+      driver.head shouldBe Driver("Michael Knight", "KITT")
       val trip = Await.result(datastore.dbConfig.db.run(datastore.trips.result), 10 seconds)
       trip.head shouldBe Trip("Finale", "Michael Knight", "KITT")
     }
