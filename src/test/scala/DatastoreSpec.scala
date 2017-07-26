@@ -22,7 +22,7 @@ class DatastoreSpec extends FunSpec with Matchers {
            |    db {
            |      connectionPool = disabled
            |      driver = "org.h2.Driver"
-           |      url = "jdbc:h2:mem:$dbName;MODE=MYSQL;DB_CLOSE_DELAY=-1"
+           |      url = "jdbc:h2:mem:$dbName"
            |    }
            |  }
     """.stripMargin
@@ -31,17 +31,19 @@ class DatastoreSpec extends FunSpec with Matchers {
       import datastore.dbConfig.profile.api._
 
       val schema = datastore.cars.schema ++ datastore.drivers.schema ++ datastore.trips.schema
-      Await.ready(datastore.dbConfig.db.run(schema.create), 10 seconds)
-      Await.ready(datastore.dbConfig.db.run(datastore.cars += Car("KITT", "Pontiac", "Trans-Am")), 10 seconds)
-      Await.ready(datastore.dbConfig.db.run(datastore.drivers += Driver("Michael Knight", "KITT")), 10 seconds)
-      Await.ready(datastore.dbConfig.db.run(datastore.trips += Trip("Finale", "Michael Knight", "KITT")), 10 seconds)
-
-      val car = Await.result(datastore.dbConfig.db.run(datastore.trips.result), 10 seconds)
-      car.head shouldBe Car("KITT", "Pontiac", "Trans-Am")
-      val driver = Await.result(datastore.dbConfig.db.run(datastore.trips.result), 10 seconds)
-      driver.head shouldBe Driver("Michael Knight", "KITT")
-      val trip = Await.result(datastore.dbConfig.db.run(datastore.trips.result), 10 seconds)
-      trip.head shouldBe Trip("Finale", "Michael Knight", "KITT")
+      Await.result(datastore.dbConfig.db.run(DBIO.sequence(Vector(
+        schema.create,
+        datastore.cars += Car("KITT", "Pontiac", "Trans-Am"),
+        datastore.drivers += Driver("Michael Knight", "KITT"),
+        datastore.trips += Trip("Finale", "Michael Knight", "KITT"),
+        datastore.cars.take(1).result,
+        datastore.drivers.take(1).result,
+        datastore.trips.take(1).result)
+      )), 10 seconds).tail shouldBe Vector(
+        1, 1, 1,
+        Vector(Car("KITT", "Pontiac", "Trans-Am")),
+        Vector(Driver("Michael Knight", "KITT")),
+        Vector(Trip("Finale", "Michael Knight", "KITT")))
     }
   }
 }
