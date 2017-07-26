@@ -19,37 +19,41 @@ trait DatastoreImpl {
 
   import dbConfig.profile.api._
 
-  class CarsTable(tag: Tag) extends Table[Car](tag, "CARS") {
+  class CarsTable(tag: Tag) extends Table[Car](tag, "cars") {
 
-    def name = column[String]("car")
+    def name = column[String]("name")
 
     def make = column[String]("make")
 
     def model = column[String]("model")
 
-    def pk = primaryKey("pk", name)
+    def cars_pk = primaryKey("cars_pk", name)
 
     def * = (name, make, model) <> (Car.tupled, Car.unapply)
   }
 
   val cars: TableQuery[CarsTable] = TableQuery[CarsTable]
 
-  class DriversTable(tag: Tag) extends Table[Driver](tag, "DRIVERS") {
+
+
+  class DriversTable(tag: Tag) extends Table[Driver](tag, "drivers") {
 
     def name = column[String]("name")
 
     def car = column[String]("car")
 
-    def pk = primaryKey("pk", name)
+    def drivers_pk = primaryKey("drivers_pk", name)
 
-    def car_fk = foreignKey("car", car, cars)(_.name)
+    def car_fk = foreignKey("car_fk", car, cars)(_.name)
 
     def * = (name, car) <> (Driver.tupled, Driver.unapply)
   }
 
   val drivers: TableQuery[DriversTable] = TableQuery[DriversTable]
 
-  class TripsTable(tag: Tag) extends Table[Trip](tag, "TRIPS") {
+
+
+  class TripsTable(tag: Tag) extends Table[Trip](tag, "trips") {
 
     def name = column[String]("name")
 
@@ -57,9 +61,11 @@ trait DatastoreImpl {
 
     def car = column[String]("car")
 
-    def pk = primaryKey("pk", name)
+    def trips_pk = primaryKey("trips_pk", name)
 
-    def driver_fk = foreignKey("driver", driver, drivers)(_.name)
+    def trip_driver_fk = foreignKey("trip_driver_fk", driver, drivers)(_.name)
+
+    def trip_car_fk = foreignKey("trip_car_fk", car, cars)(_.name)
 
     def * = (name, driver, car) <> (Trip.tupled, Trip.unapply)
   }
